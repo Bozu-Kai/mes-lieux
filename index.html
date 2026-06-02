@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mes Lieux">
+<meta name="description" content="Répertoire de lieux partagé">
+<link rel="manifest" href="manifest.json">
+<title>Mes Lieux</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --bg2: #1a1a2e;
+    --bg3: #16213e;
+    --surface: #1e1e35;
+    --surface2: #252540;
+    --accent: #e8c97e;
+    --accent2: #c9a84c;
+    --text: #f0ede6;
+    --text2: #a09d9a;
+    --text3: #6a6875;
+    --border: rgba(255,255,255,0.07);
+    --radius: 16px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* APP SHELL */
+  #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+  /* HEADER */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-mark svg { width: 18px; height: 18px; fill: var(--bg2); }
+  .app-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .app-subtitle { font-size: 11px; color: var(--text3); margin-top: -2px; }
+  .header-actions { display: flex; gap: 8px; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text2);
+    transition: background 0.15s, color 0.15s;
+  }
+  .icon-btn:hover { background: var(--surface2); color: var(--text); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  /* SEARCH BAR */
+  .search-bar {
+    padding: 12px 20px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+  .search-input-wrap svg { width: 16px; height: 16px; color: var(--text3); flex-shrink: 0; }
+  .search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 0;
+  }
+  .search-input::placeholder { color: var(--text3); }
+
+  /* STATS BAR */
+  .stats-bar {
+    padding: 10px 20px;
+    display: flex;
+    gap: 16px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .stats-bar::-webkit-scrollbar { display: none; }
+  .stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .stat-pill.active { background: rgba(232,201,126,0.12); border-color: rgba(232,201,126,0.3); }
+  .stat-pill svg { width: 14px; height: 14px; }
+  .stat-pill span { font-size: 12px; color: var(--text2); }
+  .stat-pill strong { font-size: 12px; font-weight: 500; color: var(--text); }
+
+  /* MAIN SCROLL */
+  #main-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 16px 80px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface2) transparent;
+  }
+
+  /* LOADING */
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    gap: 16px;
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 2px solid var(--surface2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; color: var(--text3); }
+
+  /* ERROR STATE */
+  .error-state {
+    background: rgba(220,80,60,0.08);
+    border: 1px solid rgba(220,80,60,0.2);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  .error-state svg { width: 28px; height: 28px; color: #e05050; margin-bottom: 10px; }
+  .error-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .error-msg { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 14px; }
+  .retry-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 18px;
+    cursor: pointer;
+  }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 60px 20px; }
+  .empty-state svg { width: 40px; height: 40px; color: var(--text3); margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; color: var(--text3); }
+
+  /* GRID */
+  .places-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* CARD */
+  .place-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    animation: fadeIn 0.3s ease forwards;
+    opacity: 0;
+  }
+  .place-card:active { transform: scale(0.98); }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  /* PHOTO GALLERY IN CARD */
+  .card-gallery {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    background: var(--bg3);
+  }
+  .card-gallery img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.3s;
+  }
+  .card-gallery .no-photo {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px;
+    color: var(--text3);
+    background: var(--bg3);
+  }
+  .card-gallery .no-photo svg { width: 32px; height: 32px; }
+  .card-gallery .no-photo span { font-size: 12px; }
+  .photo-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 5px;
+  }
+  .photo-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transition: background 0.2s, width 0.2s;
+  }
+  .photo-dot.active { background: rgba(255,255,255,0.9); width: 16px; border-radius: 3px; }
+  .photo-count-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* CARD BODY */
+  .card-body { padding: 14px 16px 16px; }
+  .card-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .card-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--text);
+    line-height: 1.2;
+    flex: 1;
+  }
+  .persons-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(232,201,126,0.12);
+    border: 1px solid rgba(232,201,126,0.25);
+    border-radius: 20px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .persons-badge svg { width: 12px; height: 12px; color: var(--accent); }
+  .persons-badge span { font-size: 12px; color: var(--accent); font-weight: 500; }
+  .card-address {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+  .card-address svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .card-comment {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-date {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 10px;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    z-index: 50;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 0;
+    cursor: pointer;
+    color: var(--text3);
+    transition: color 0.15s;
+    font-size: 10px;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-item svg { width: 22px; height: 22px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    display: flex;
+    align-items: flex-end;
+    animation: fadeOverlay 0.2s ease;
+  }
+  @keyframes fadeOverlay { from { opacity: 0; } }
+  .modal-sheet {
+    background: var(--bg2);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    scrollbar-width: none;
+  }
+  .modal-sheet::-webkit-scrollbar { display: none; }
+  @keyframes slideUp { from { transform: translateY(100%); } }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .modal-gallery {
+    position: relative;
+    height: 260px;
+    margin-top: 12px;
+    background: var(--bg3);
+    overflow: hidden;
+  }
+  .modal-gallery img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .modal-gallery .no-photo {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px; color: var(--text3);
+  }
+  .modal-gallery .no-photo svg { width: 40px; height: 40px; }
+  .gallery-nav {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    display: flex; justify-content: space-between;
+    width: 100%; padding: 0 10px;
+    pointer-events: none;
+  }
+  .gallery-btn {
+    width: 36px; height: 36px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    pointer-events: all;
+    backdrop-filter: blur(4px);
+    color: #fff;
+    border: none;
+    transition: background 0.15s;
+  }
+  .gallery-btn:hover { background: rgba(0,0,0,0.75); }
+  .gallery-btn svg { width: 18px; height: 18px; }
+  .gallery-counter {
+    position: absolute;
+    bottom: 10px; right: 12px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 12px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .modal-body { padding: 20px 20px 40px; }
+  .modal-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+  .modal-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .meta-chip svg { width: 14px; height: 14px; }
+  .meta-chip.gold { background: rgba(232,201,126,0.1); border-color: rgba(232,201,126,0.25); color: var(--accent); }
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .comment-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .close-btn {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 32px; height: 32px;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    backdrop-filter: blur(4px);
+  }
+  .close-btn svg { width: 16px; height: 16px; }
+
+  /* CONFIG SCREEN */
+  #config-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 200;
+    overflow-y: auto;
+    padding: 24px 20px 40px;
+  }
+  #config-screen.visible { display: block; }
+  .config-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .config-subtitle { font-size: 13px; color: var(--text3); margin-bottom: 28px; line-height: 1.5; }
+  .config-label { font-size: 13px; color: var(--text2); margin-bottom: 6px; font-weight: 500; }
+  .config-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 12px 14px;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color 0.15s;
+  }
+  .config-input:focus { border-color: var(--accent); }
+  .config-hint {
+    font-size: 12px;
+    color: var(--text3);
+    line-height: 1.5;
+    margin-top: -10px;
+    margin-bottom: 20px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border-left: 2px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+  }
+  .config-hint code { font-family: monospace; color: var(--accent); font-size: 11px; word-break: break-all; }
+  .config-btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--bg2);
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 14px;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background 0.15s;
+  }
+  .config-btn:hover { background: var(--accent2); }
+  .config-sep { height: 1px; background: var(--border); margin: 24px 0; }
+  .config-section-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .config-section-sub { font-size: 13px; color: var(--text3); margin-bottom: 16px; }
+  .col-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .col-group { display: flex; flex-direction: column; }
+</style>
+</head>
+<body>
+
+<!-- CONFIG SCREEN -->
+<div id="config-screen">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px;">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+    </div>
+    <span style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--text)">Mes Lieux</span>
+  </div>
+
+  <p class="config-title">Configuration</p>
+  <p class="config-subtitle">Renseigne l'identifiant de ton Google Sheet pour connecter l'application à ta base de données.</p>
+
+  <label class="config-label">ID du Google Sheet</label>
+  <input class="config-input" id="sheet-id-input" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+  <div class="config-hint">
+    <strong style="color:var(--text2)">Comment trouver l'ID ?</strong><br>
+    Dans l'URL de ton Sheet :<br>
+    <code>docs.google.com/spreadsheets/d/<strong>[ID_ICI]</strong>/edit</code>
+  </div>
+
+  <label class="config-label">Nom de la feuille (onglet)</label>
+  <input class="config-input" id="sheet-name-input" placeholder="Lieux" value="Lieux" />
+
+  <div class="config-sep"></div>
+  <p class="config-section-title">Colonnes du Sheet</p>
+  <p class="config-section-sub">Lettres des colonnes (A, B, C…) correspondant à chaque champ</p>
+
+  <div class="col-row">
+    <div class="col-group"><label class="config-label">Nom du lieu</label><input class="config-input" id="col-nom" placeholder="A" value="A"></div>
+    <div class="col-group"><label class="config-label">Adresse</label><input class="config-input" id="col-adresse" placeholder="B" value="B"></div>
+  </div>
+  <div class="col-row">
+    <div class="col-group"><label class="config-label">Nb de personnes</label><input class="config-input" id="col-personnes" placeholder="C" value="C"></div>
+    <div class="col-group"><label class="config-label">Date</label><input class="config-input" id="col-date" placeholder="D" value="D"></div>
+  </div>
+  <label class="config-label">Commentaire</label>
+  <input class="config-input" id="col-commentaire" placeholder="E" value="E">
+  <div class="col-row">
+    <div class="col-group"><label class="config-label">Photo 1</label><input class="config-input" id="col-photo1" placeholder="F" value="F"></div>
+    <div class="col-group"><label class="config-label">Photo 2</label><input class="config-input" id="col-photo2" placeholder="G" value="G"></div>
+  </div>
+  <div class="col-row">
+    <div class="col-group"><label class="config-label">Photo 3</label><input class="config-input" id="col-photo3" placeholder="H" value="H"></div>
+    <div class="col-group"><label class="config-label">Photo 4</label><input class="config-input" id="col-photo4" placeholder="I" value="I"></div>
+  </div>
+
+  <button class="config-btn" onclick="saveConfig()">Enregistrer et charger les lieux</button>
+  <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:14px">Les paramètres sont sauvegardés localement sur cet appareil</p>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      </div>
+      <div>
+        <div class="app-title">Mes Lieux</div>
+        <div class="app-subtitle" id="header-subtitle">Chargement…</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="icon-btn" onclick="loadPlaces()" title="Actualiser">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      </div>
+      <div class="icon-btn" onclick="openConfig()" title="Paramètres">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <div class="search-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input class="search-input" id="search-input" placeholder="Rechercher un lieu…" oninput="filterPlaces()" />
+    </div>
+  </div>
+
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-pill active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <strong id="stat-total">–</strong>
+      <span>lieux</span>
+    </div>
+    <div class="stat-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      <strong id="stat-persons">–</strong>
+      <span>personnes au total</span>
+    </div>
+    <div class="stat-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <strong id="stat-photos">–</strong>
+      <span>photos</span>
+    </div>
+  </div>
+
+  <div id="main-scroll">
+    <div id="content">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p class="loading-text">Chargement des lieux…</p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Lieux
+    </div>
+    <div class="nav-item" onclick="window.open('https://docs.google.com/spreadsheets/d/'+getConfig().sheetId+'/edit','_blank')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Sheet
+    </div>
+    <div class="nav-item" onclick="openConfig()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Réglages
+    </div>
+  </nav>
+</div>
+
+<!-- PLACE MODAL -->
+<div id="modal" style="display:none;"></div>
+
+<script>
+// ---- CONFIG ----
+const DEFAULT_CONFIG = {
+  sheetId: '',
+  sheetName: 'Lieux',
+  cols: { nom:'A', adresse:'B', personnes:'C', date:'D', commentaire:'E', photo1:'F', photo2:'G', photo3:'H', photo4:'I' }
+};
+
+function getConfig() {
+  try { return JSON.parse(localStorage.getItem('mesLieuxConfig')) || DEFAULT_CONFIG; }
+  catch(e) { return DEFAULT_CONFIG; }
+}
+function saveConfig() {
+  const cfg = {
+    sheetId: document.getElementById('sheet-id-input').value.trim(),
+    sheetName: document.getElementById('sheet-name-input').value.trim() || 'Lieux',
+    cols: {
+      nom: document.getElementById('col-nom').value.trim().toUpperCase() || 'A',
+      adresse: document.getElementById('col-adresse').value.trim().toUpperCase() || 'B',
+      personnes: document.getElementById('col-personnes').value.trim().toUpperCase() || 'C',
+      date: document.getElementById('col-date').value.trim().toUpperCase() || 'D',
+      commentaire: document.getElementById('col-commentaire').value.trim().toUpperCase() || 'E',
+      photo1: document.getElementById('col-photo1').value.trim().toUpperCase() || 'F',
+      photo2: document.getElementById('col-photo2').value.trim().toUpperCase() || 'G',
+      photo3: document.getElementById('col-photo3').value.trim().toUpperCase() || 'H',
+      photo4: document.getElementById('col-photo4').value.trim().toUpperCase() || 'I',
+    }
+  };
+  if (!cfg.sheetId) { alert('Merci de saisir l\'ID du Google Sheet'); return; }
+  localStorage.setItem('mesLieuxConfig', JSON.stringify(cfg));
+  closeConfig();
+  loadPlaces();
+}
+function openConfig() {
+  const cfg = getConfig();
+  document.getElementById('sheet-id-input').value = cfg.sheetId || '';
+  document.getElementById('sheet-name-input').value = cfg.sheetName || 'Lieux';
+  document.getElementById('col-nom').value = cfg.cols.nom || 'A';
+  document.getElementById('col-adresse').value = cfg.cols.adresse || 'B';
+  document.getElementById('col-personnes').value = cfg.cols.personnes || 'C';
+  document.getElementById('col-date').value = cfg.cols.date || 'D';
+  document.getElementById('col-commentaire').value = cfg.cols.commentaire || 'E';
+  document.getElementById('col-photo1').value = cfg.cols.photo1 || 'F';
+  document.getElementById('col-photo2').value = cfg.cols.photo2 || 'G';
+  document.getElementById('col-photo3').value = cfg.cols.photo3 || 'H';
+  document.getElementById('col-photo4').value = cfg.cols.photo4 || 'I';
+  document.getElementById('config-screen').classList.add('visible');
+}
+function closeConfig() {
+  document.getElementById('config-screen').classList.remove('visible');
+}
+
+// ---- COLUMN LETTER → INDEX ----
+function colIdx(letter) {
+  letter = (letter || 'A').toUpperCase();
+  let idx = 0;
+  for (let i = 0; i < letter.length; i++) idx = idx * 26 + letter.charCodeAt(i) - 64;
+  return idx - 1;
+}
+
+// ---- DATA ----
+let allPlaces = [];
+
+async function loadPlaces() {
+  const cfg = getConfig();
+  if (!cfg.sheetId) { openConfig(); return; }
+
+  setContent(`<div class="loading-state"><div class="spinner"></div><p class="loading-text">Chargement en cours…</p></div>`);
+  document.getElementById('header-subtitle').textContent = 'Mise à jour…';
+
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${cfg.sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(cfg.sheetName)}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const text = await resp.text();
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+
+    if (!json.table || !json.table.rows) throw new Error('Feuille vide ou introuvable');
+
+    const cols = cfg.cols;
+    allPlaces = json.table.rows.map((row, i) => {
+      const cell = (letter) => {
+        const c = row.c[colIdx(letter)];
+        return c && c.v != null ? String(c.v).trim() : '';
+      };
+      const photos = [cols.photo1, cols.photo2, cols.photo3, cols.photo4]
+        .map(c => cell(c))
+        .filter(Boolean)
+        .map(url => convertDriveUrl(url));
+      return {
+        id: i,
+        nom: cell(cols.nom),
+        adresse: cell(cols.adresse),
+        personnes: cell(cols.personnes),
+        date: cell(cols.date),
+        commentaire: cell(cols.commentaire),
+        photos
+      };
+    }).filter(p => p.nom);
+
+    renderPlaces(allPlaces);
+    updateStats(allPlaces);
+    document.getElementById('header-subtitle').textContent = allPlaces.length + ' lieu' + (allPlaces.length > 1 ? 'x' : '') + ' chargé' + (allPlaces.length > 1 ? 's' : '');
+  } catch(e) {
+    setContent(`<div class="error-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p class="error-title">Impossible de charger les données</p>
+      <p class="error-msg">Vérifie que l'ID du Sheet est correct et que le partage est réglé sur <strong>« Tous ceux qui ont le lien (lecteur) »</strong>.<br><br>Erreur : ${e.message}</p>
+      <button class="retry-btn" onclick="loadPlaces()">Réessayer</button>
+    </div>`);
+    document.getElementById('header-subtitle').textContent = 'Erreur de chargement';
+  }
+}
+
+function convertDriveUrl(url) {
+  if (!url) return '';
+  // Convert Google Drive share link to direct image
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+  return url;
+}
+
+// ---- RENDER ----
+function renderPlaces(places) {
+  if (!places.length) {
+    setContent(`<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <p>Aucun lieu trouvé</p></div>`);
+    return;
+  }
+  const html = `<div class="places-grid">${places.map((p, i) => cardHTML(p, i)).join('')}</div>`;
+  setContent(html);
+}
+
+function cardHTML(p, animIdx) {
+  const photo = p.photos[0] || '';
+  const photoCount = p.photos.length;
+  const dots = photoCount > 1 ? p.photos.map((_, i) => `<div class="photo-dot${i===0?' active':''}"></div>`).join('') : '';
+
+  const gallery = photo
+    ? `<img src="${esc(photo)}" alt="${esc(p.nom)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\"no-photo\\"><svg viewBox=\\"0 0 24 24\\" fill=\\"none\\" stroke=\\"currentColor\\" stroke-width=\\"2\\"><rect x=\\"3\\" y=\\"3\\" width=\\"18\\" height=\\"18\\" rx=\\"2\\"/><polyline points=\\"8.5 3 8.5 21\\"/></svg><span>Image indisponible</span></div>'">`
+    : `<div class="no-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span>Pas de photo</span></div>`;
+
+  return `<div class="place-card" style="animation-delay:${animIdx*0.05}s" onclick="openPlace(${p.id})">
+    <div class="card-gallery">
+      ${gallery}
+      ${photoCount > 1 ? `<span class="photo-count-badge">${photoCount} photos</span>` : ''}
+      ${dots ? `<div class="photo-dots">${dots}</div>` : ''}
+    </div>
+    <div class="card-body">
+      <div class="card-header-row">
+        <div class="card-name">${esc(p.nom)}</div>
+        ${p.personnes ? `<div class="persons-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>${esc(p.personnes)}</span></div>` : ''}
+      </div>
+      ${p.adresse ? `<div class="card-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>${esc(p.adresse)}</div>` : ''}
+      ${p.commentaire ? `<div class="card-comment">${esc(p.commentaire)}</div>` : ''}
+      ${p.date ? `<div class="card-date">${esc(p.date)}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+// ---- MODAL ----
+let modalPhotoIdx = 0;
+let modalPhotos = [];
+
+function openPlace(id) {
+  const p = allPlaces[id];
+  if (!p) return;
+  modalPhotos = p.photos;
+  modalPhotoIdx = 0;
+
+  const modal = document.getElementById('modal');
+  modal.style.display = 'block';
+  modal.innerHTML = `<div class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-gallery" id="modal-gallery">
+        ${modalPhotos.length ? `<img id="modal-img" src="${esc(modalPhotos[0])}" alt="${esc(p.nom)}" onerror="this.style.display='none'">` : `<div class="no-photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span>Aucune photo</span></div>`}
+        ${modalPhotos.length > 1 ? `<div class="gallery-nav"><button class="gallery-btn" onclick="prevPhoto()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button><button class="gallery-btn" onclick="nextPhoto()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button></div>` : ''}
+        ${modalPhotos.length > 1 ? `<span class="gallery-counter" id="gallery-counter">1 / ${modalPhotos.length}</span>` : ''}
+        <button class="close-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-name">${esc(p.nom)}</p>
+        <div class="modal-meta">
+          ${p.personnes ? `<div class="meta-chip gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(p.personnes)} personne${parseInt(p.personnes)>1?'s':''}</div>` : ''}
+          ${p.adresse ? `<div class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>${esc(p.adresse)}</div>` : ''}
+          ${p.date ? `<div class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${esc(p.date)}</div>` : ''}
+          ${p.photos.length ? `<div class="meta-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>${p.photos.length} photo${p.photos.length>1?'s':''}</div>` : ''}
+        </div>
+        ${p.commentaire ? `<p class="section-label">Commentaire</p><div class="comment-box">${esc(p.commentaire)}</div>` : ''}
+        ${p.adresse ? `<br><button onclick="window.open('https://maps.google.com/?q='+encodeURIComponent('${p.adresse}'),'_blank')" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Ouvrir dans Google Maps</button>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function prevPhoto() {
+  modalPhotoIdx = (modalPhotoIdx - 1 + modalPhotos.length) % modalPhotos.length;
+  updateModalPhoto();
+}
+function nextPhoto() {
+  modalPhotoIdx = (modalPhotoIdx + 1) % modalPhotos.length;
+  updateModalPhoto();
+}
+function updateModalPhoto() {
+  const img = document.getElementById('modal-img');
+  if (img) { img.style.opacity = '0'; img.src = modalPhotos[modalPhotoIdx]; img.onload = () => img.style.opacity = '1'; }
+  const ctr = document.getElementById('gallery-counter');
+  if (ctr) ctr.textContent = (modalPhotoIdx + 1) + ' / ' + modalPhotos.length;
+}
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('modal').style.display = 'none';
+  document.getElementById('modal').innerHTML = '';
+}
+
+// ---- SEARCH ----
+function filterPlaces() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  const filtered = q ? allPlaces.filter(p =>
+    (p.nom+p.adresse+p.commentaire).toLowerCase().includes(q)
+  ) : allPlaces;
+  renderPlaces(filtered);
+  updateStats(filtered);
+}
+
+// ---- STATS ----
+function updateStats(places) {
+  document.getElementById('stat-total').textContent = places.length;
+  const persons = places.reduce((acc, p) => acc + (parseInt(p.personnes) || 0), 0);
+  document.getElementById('stat-persons').textContent = persons || '–';
+  const photos = places.reduce((acc, p) => acc + p.photos.length, 0);
+  document.getElementById('stat-photos').textContent = photos;
+}
+
+// ---- UTILS ----
+function setContent(html) {
+  document.getElementById('content').innerHTML = html;
+}
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ---- INIT ----
+window.addEventListener('load', () => {
+  const cfg = getConfig();
+  if (!cfg.sheetId) { openConfig(); document.getElementById('header-subtitle').textContent = 'Configuration requise'; }
+  else loadPlaces();
+});
+
+// Swipe to close modal
+let touchStartY = 0;
+document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
+document.addEventListener('touchend', e => {
+  const modal = document.getElementById('modal');
+  if (!modal.innerHTML) return;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (dy > 80) closeModal(null);
+}, { passive: true });
+</script>
+</body>
+</html>
